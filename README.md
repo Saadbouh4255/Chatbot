@@ -1,70 +1,149 @@
-# Getting Started with Create React App
+# Coulouche-Bot - Le Sage du Dimanche 🤖
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Un chatbot humoristique inspiré de Coluche, construit avec Django (backend) et React (frontend).
 
-## Available Scripts
+## 📁 Structure du Projet
 
-In the project directory, you can run:
+```
+Chatbot-static/
+├── backend/           # Application Django (API REST)
+│   ├── chat/         # Application de chat
+│   │   ├── views.py  # VueChat - Logique du chatbot
+│   │   └── urls.py   # Routes API
+│   ├── core/         # Configuration Django
+│   └── manage.py     # Script de gestion Django
+│
+└── frontend/         # Application React
+    ├── src/          # Code source React
+    │   ├── App.jsx   # Composant principal
+    │   └── App.css   # Styles modernes
+    ├── public/       # Fichiers statiques
+    └── package.json  # Dépendances npm
+```
 
-### `npm start`
+## 🎨 Caractéristiques
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Design Moderne** : Interface sombre avec effets glassmorphism et animations fluides
+- **Code en Français** : Toutes les variables, fonctions et commentaires sont en français
+- **Responsive** : S'adapte à tous les écrans
+- **Animations** : Transitions douces avec Framer Motion
+- **API IA** : Utilise Google Gemini pour générer des réponses humoristiques
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🚀 Installation et Démarrage
 
-### `npm test`
+### Backend (Django)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 8001
+```
 
-### `npm run build`
+Le backend sera accessible sur `http://localhost:8001`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Frontend (React)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+cd frontend
+npm install
+npm start
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Le frontend sera accessible sur `http://localhost:3000`
 
-### `npm run eject`
+## 🔧 Configuration
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Clé API Gemini
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+La clé API est configurée dans `backend/chat/views.py`. Pour utiliser votre propre clé :
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. Obtenez une clé API sur [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Remplacez `CLE_API` dans `backend/chat/views.py`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 📝 Conventions de Nommage (Français)
 
-## Learn More
+### Frontend (React)
+- **Variables** : `texteEntree`, `estEnChargement`, `messageUtilisateur`
+- **Fonctions** : `envoyerMessage()`, `faireDefilerVersBas()`
+- **Constantes** : `URL_API`, `refFinMessages`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Backend (Django)
+- **Variables** : `message_utilisateur`, `discussion`, `reponse`
+- **Fonctions** : `post()` (méthode de classe)
+- **Classes** : `VueChat`
+- **Constantes** : `CLE_API`, `INSTRUCTION_SYSTEME`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🎭 Personnalité du Bot
 
-### Code Splitting
+Coulouche-Bot est conçu pour :
+- Ne jamais donner de réponse utile
+- Répondre avec humour et ironie
+- Utiliser un ton familier et gouailleur
+- Faire de l'auto-dérision
+- Rester bref (1-2 phrases maximum)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🛠️ Technologies Utilisées
 
-### Analyzing the Bundle Size
+### Frontend
+- React 19.2.1
+- Framer Motion (animations)
+- Lucide React (icônes)
+- Axios (requêtes HTTP)
+- CSS moderne avec variables CSS
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Backend
+- Django 5.x
+- Django REST Framework
+- Google Generative AI (Gemini)
+- CORS Headers
 
-### Making a Progressive Web App
+## 📱 Responsive Design
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+L'interface s'adapte automatiquement :
+- **Desktop** : Fenêtre centrée avec largeur maximale de 900px
+- **Mobile** : Plein écran avec interface optimisée
 
-### Advanced Configuration
+## 🎨 Palette de Couleurs
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```css
+--couleur-primaire: #6366f1 (Indigo)
+--couleur-secondaire: #8b5cf6 (Violet)
+--couleur-accent: #ec4899 (Rose)
+--fond-principal: #0f172a (Bleu nuit)
+--fond-secondaire: #1e293b (Ardoise)
+```
 
-### Deployment
+## 📄 Licence
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+MIT License - Voir le fichier LICENSE pour plus de détails
 
-### `npm run build` fails to minify
+## 👨‍💻 Développement
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Pour contribuer au projet :
+
+1. Fork le projet
+2. Créez une branche (`git checkout -b feature/amelioration`)
+3. Committez vos changements (`git commit -m 'Ajout d'une fonctionnalité'`)
+4. Push vers la branche (`git push origin feature/amelioration`)
+5. Ouvrez une Pull Request
+
+## 🐛 Dépannage
+
+### Le backend ne démarre pas
+- Vérifiez que le port 8001 est libre
+- Assurez-vous que toutes les dépendances sont installées
+
+### Le frontend ne se connecte pas au backend
+- Vérifiez que le backend tourne sur le port 8001
+- Vérifiez la configuration CORS dans Django
+
+### Erreurs de l'API Gemini
+- Vérifiez que votre clé API est valide
+- Assurez-vous d'avoir une connexion internet
+
+---
+
+**Fait avec ❤️ et beaucoup d'humour**
