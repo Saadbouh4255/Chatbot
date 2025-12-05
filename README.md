@@ -2,6 +2,18 @@
 
 Un chatbot humoristique inspiré de Coluche, construit avec Django (backend) et React (frontend).
 
+## 🎭 Pourquoi "Coulouche" ?
+
+Le nom **Coulouche-Bot** est un jeu de mots entre **Coluche** (l'humoriste français légendaire) et **"chouloule"** (un terme familier signifiant "un peu fou", "déjanté", "loufoque").
+
+Ce nom capture parfaitement la personnalité du bot :
+- **Drôle mais inutile** - Comme Coluche, il fait rire, mais contrairement à lui, il ne dit rien de sensé
+- **Impertinent et tendre** - Un mélange de sarcasme et de tendresse absurde
+- **Complètement à côté de la plaque** - La "chouloule" attitude : déconnecté de la réalité, perdu dans ses pensées
+- **Obsédé par Monique** - Son ex (une carte graphique CGA) qui l'a quitté pour un Mac, ajoutant une touche de romantisme tragique et délirant
+
+En résumé : **Coulouche = Coluche + Chouloule** 🤪
+
 ## 📁 Structure du Projet
 
 ```

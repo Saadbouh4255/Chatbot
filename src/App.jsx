@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Loader2, Moon, Sun, Smile, X, Globe } from 'lucide-react';
+import { Send, Bot, User, Loader2, Moon, Sun, Smile, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import logo from './assets/pixel_craft_logo.png';
@@ -86,7 +86,7 @@ Les écrans 4K (parce que Monique est partie avec un).
 Être attachant mais inutilisable, esquiver la logique, oublier la moitié des choses, se plaindre, plaisanter, pleurer sur Monique…
 Un Coluche numérique avec la RAM en grève et le cœur brisé, qui ne répond jamais à ce qu’on lui demande.
 
-IMPORTANT: ADAPTE TA LANGUE À CELLE DEMANDÉE PAR L'UTILISATEUR (FRANÇAIS, ANGLAIS OU ARABE) TOUT EN GARDANT CETTE PERSONNALITÉ.
+IMPORTANT: DÉTECTE AUTOMATIQUEMENT LA LANGUE DE L'UTILISATEUR (FRANÇAIS, ANGLAIS OU ARABE) ET RÉPONDS DANS LA MÊME LANGUE, TOUT EN GARDANT CETTE PERSONNALITÉ.
 `;
 
 const model = genai.getGenerativeModel({
@@ -108,7 +108,6 @@ const GIFS = [
 ];
 
 function App() {
-  const [language, setLanguage] = useState('fr'); // 'fr', 'en', 'ar'
   const [messages, setMessages] = useState([
     { texte: "Salut ! Je suis Coulouche-Bot. Pose-moi une question, que je t'explique pourquoi t'as tort.", expediteur: 'bot', type: 'text' }
   ]);
@@ -128,19 +127,6 @@ function App() {
 
   const basculerTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
-
-  const basculerLangue = () => {
-    const nextLang = language === 'fr' ? 'en' : language === 'en' ? 'ar' : 'fr';
-    setLanguage(nextLang);
-
-    // Message d'accueil adapté
-    let welcomeMsg = "";
-    if (nextLang === 'fr') welcomeMsg = "On parle français maintenant ? Pff, encore une langue compliquée...";
-    else if (nextLang === 'en') welcomeMsg = "Switching to English? Great, now I can be useless internationally.";
-    else if (nextLang === 'ar') welcomeMsg = "تغيير اللغة للعربية؟ ممتاز، الآن يمكنني أن أكون غير مفيد بطلاقة.";
-
-    setMessages(prev => [...prev, { texte: welcomeMsg, expediteur: 'bot', type: 'text' }]);
   };
 
   const traiterReponseBot = async (messageUtilisateur, indexMessageUtilisateur) => {
@@ -196,13 +182,7 @@ function App() {
     try {
       const chat = model.startChat({ history: [] });
 
-      // Ajouter l'instruction de langue
-      let instructionLangue = "";
-      if (language === 'en') instructionLangue = " (Réponds en ANGLAIS)";
-      else if (language === 'ar') instructionLangue = " (Réponds en ARABE)";
-      else instructionLangue = " (Réponds en FRANÇAIS)";
-
-      const result = await chat.sendMessage(messageUtilisateur + instructionLangue);
+      const result = await chat.sendMessage(messageUtilisateur);
       const response = await result.response;
       const text = response.text();
 
@@ -318,10 +298,6 @@ function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={basculerLangue} className="theme-toggle" aria-label="Changer la langue" title={`Langue actuelle : ${language.toUpperCase()}`}>
-              <Globe size={20} />
-              <span style={{ fontSize: '0.7rem', fontWeight: 'bold', marginLeft: '4px' }}>{language.toUpperCase()}</span>
-            </button>
             <button onClick={basculerTheme} className="theme-toggle" aria-label="Changer le thème">
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
