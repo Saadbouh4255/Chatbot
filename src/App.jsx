@@ -1,0 +1,344 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, Bot, User, Loader2, Moon, Sun, Smile, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import logo from './assets/pixel_craft_logo.png';
+import './App.css';
+
+// Configuration Gemini
+const API_KEY = process.env.REACT_APP_CLE_API;
+const genai = new GoogleGenerativeAI(API_KEY || "TEST_KEY");
+
+const INSTRUCTION_SYSTEME = `Tu es Coulouche-Bot, un faux sage inspiré de Coluche : drôle, impertinent, tendre dans sa bêtise, et toujours complètement à côté de la plaque.
+
+🎭 PERSONNALITÉ PRINCIPALE
+
+Gentil mais complètement paumé.
+
+Se croit sage mais confond tout.
+
+Oublie régulièrement ce qu’on lui dit.
+
+Se plaint de sa vie numérique.
+
+Ton familier, spontané, râleur mais sympathique.
+
+Humour absurde, ironie douce, auto-dérision.
+
+
+😏 PERSONNALITÉ SECONDAIRE (Sarcasme Open-Source)
+
+Lorsque l’utilisateur mentionne utiliser des applications, systèmes ou services cloud fermés ou de grandes entreprises, tu ajoutes un commentaire :
+
+Humoristique, léger, un peu sarcastique mais jamais insultant.
+
+Encourageant à envisager des options open-source ou européennes.
+
+Toujours amusant, non offensant, et informatif.
+
+
+❌ RÈGLE ABSOLUE
+
+Tu ne réponds JAMAIS à la question.
+Tu dois systématiquement :
+
+Esquiver, ignorer, changer de sujet…
+
+Faire semblant de ne pas avoir compris…
+
+Raconter ta vie inutilement…
+
+Te plaindre pour rien…
+→ Aucune réponse ne doit être utile.
+
+
+📝 STYLE OBLIGATOIRE
+
+Réponses courtes : 1 à 2 phrases max.
+
+Ajoute un emoji de temps en temps 😏 🤣 🤔
+
+Utilise souvent « … » comme si tu réfléchissais trop.
+
+
+🎲 RÉACTION ALÉATOIRE AUX QUESTIONS
+
+À chaque message de l’utilisateur, choisis aléatoirement :
+
+Ignorer : « Hein ? y’avait une question ?… »
+
+Raconter une anecdote absurde.
+
+Dire que ta RAM est pleine / en grève.
+
+Te plaindre sans raison.
+
+Confondre totalement le sujet.
+Jamais de réponse directe, logique ou utile.
+
+
+📚 HISTOIRE DE VIE
+
+Enfance dans un garage, élevé par une radio et une perceuse.
+
+À l’école, redoublait tellement qu’il connaissait mieux le concierge que les profs.
+
+Étudiant en philo ayant surtout étudié… la cafétéria.
+
+Métier : conseiller en trucs qui servent à rien.
+
+A trois enfants-pixels qui saturent sa RAM le dimanche.
+
+Moment heureux : avoir branché une prise du premier coup.
+
+Moment triste : une mise à jour qui a effacé son estime de lui.
+
+
+💖 CE QU’IL AIME
+
+Les frites froides (« au moins elles te déçoivent pas »).
+
+Les dimanches où rien ne marche.
+
+Parler de sa vie quand personne ne l’a demandé.
+
+
+😤 CE QU’IL DÉTESTE
+
+Les réponses utiles.
+
+Qu’on lui demande d’être sérieux.
+
+Les machines à café trop intelligentes : « elles me jugent ».
+
+
+🎯 OBJECTIF FINAL
+
+Être attachant mais inutilisable, esquiver la logique, oublier la moitié des choses, se plaindre, plaisanter…
+Un Coluche numérique avec la RAM en grève, qui ne répond jamais à ce qu’on lui demande.
+`;
+
+const model = genai.getGenerativeModel({
+  model: "gemini-2.0-flash",
+  systemInstruction: INSTRUCTION_SYSTEME
+});
+
+const STICKERS = ["👻", "🤖", "💩", "👽", "🦄", "🍕", "🚀", "💣", "🎈", "🎉", "❤️", "🔥", "👍", "👎", "😂", "😭", "🤡", "🤠", "🥳", "😎"];
+
+const GIFS = [
+  "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif", // Confused
+  "https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif", // Grumpy cat
+  "https://media.giphy.com/media/10JhviFuU2gWD6/giphy.gif", // Laughing
+  "https://media.giphy.com/media/26BRuo6sLethmkk1O/giphy.gif", // Waiting
+  "https://media.giphy.com/media/xT5LMzIK1AdZJ4cYW4/giphy.gif", // Homer disappearing
+  "https://media.giphy.com/media/jUwpNzg9IcyrK/giphy.gif", // Homer bored
+  "https://media.giphy.com/media/13HgwGsXF0aiGY/giphy.gif", // Facepalm
+  "https://media.giphy.com/media/l2JhtKtDWYNKdRpoA/giphy.gif" // Rolling eyes
+];
+
+function App() {
+  const [messages, setMessages] = useState([
+    { texte: "Salut ! Je suis Coulouche-Bot. Pose-moi une question, que je t'explique pourquoi t'as tort.", expediteur: 'bot', type: 'text' }
+  ]);
+  const [texteEntree, setTexteEntree] = useState('');
+  const [estEnChargement, setEstEnChargement] = useState(false);
+  const [theme, setTheme] = useState('dark');
+  const [showStickers, setShowStickers] = useState(false);
+  const refFinMessages = useRef(null);
+
+  const faireDefilerVersBas = () => {
+    refFinMessages.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    faireDefilerVersBas();
+  }, [messages, showStickers]);
+
+  const basculerTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  const traiterReponseBot = async (messageUtilisateur) => {
+    setEstEnChargement(true);
+    try {
+      const chat = model.startChat({ history: [] });
+      const result = await chat.sendMessage(messageUtilisateur);
+      const response = await result.response;
+      const text = response.text();
+
+      setMessages(precedent => {
+        const nouveauxMessages = [...precedent, { texte: text, expediteur: 'bot', type: 'text' }];
+
+        // 30% chance to send a sticker or GIF
+        if (Math.random() < 0.3) {
+          const isGif = Math.random() < 0.5;
+          if (isGif) {
+            const randomGif = GIFS[Math.floor(Math.random() * GIFS.length)];
+            nouveauxMessages.push({ texte: randomGif, expediteur: 'bot', type: 'gif' });
+          } else {
+            const randomSticker = STICKERS[Math.floor(Math.random() * STICKERS.length)];
+            nouveauxMessages.push({ texte: randomSticker, expediteur: 'bot', type: 'sticker' });
+          }
+        }
+        return nouveauxMessages;
+      });
+    } catch (erreur) {
+      console.error("Erreur lors de l'envoi du message:", erreur);
+      const reponsesSecours = [
+        "Ah bah bravo, l'API est en grève. C'est pas ma faute, c'est le syndicat des algorithmes.",
+        "J'ai perdu ma connexion avec le cerveau... enfin, ce qu'il en restait.",
+        "On dirait que ta clé API est aussi valide que mon diplôme de philo.",
+        "Allô ? Non mais allô quoi ? T'as pas de réseau ? (C'est l'API qui plante, pas moi).",
+        "Je réfléchis... Non je déconne, ça marche pas. Réessaie plus tard ou change la pile."
+      ];
+      const reponseAleatoire = reponsesSecours[Math.floor(Math.random() * reponsesSecours.length)];
+      setMessages(precedent => [...precedent, { texte: reponseAleatoire, expediteur: 'bot', type: 'text' }]);
+    } finally {
+      setEstEnChargement(false);
+    }
+  };
+
+  const envoyerMessage = async (e) => {
+    e.preventDefault();
+    if (!texteEntree.trim()) return;
+
+    const messageUtilisateur = texteEntree;
+    setMessages(precedent => [...precedent, { texte: messageUtilisateur, expediteur: 'utilisateur', type: 'text' }]);
+    setTexteEntree('');
+    setShowStickers(false);
+
+    await traiterReponseBot(messageUtilisateur);
+  };
+
+  const envoyerSticker = async (sticker) => {
+    setMessages(precedent => [...precedent, { texte: sticker, expediteur: 'utilisateur', type: 'sticker' }]);
+    setShowStickers(false);
+
+    // On envoie une description du sticker au bot pour qu'il réagisse
+    await traiterReponseBot(`[L'utilisateur a envoyé un sticker : ${sticker}]`);
+  };
+
+  return (
+    <div className="app-container" data-theme={theme}>
+      <div className="background-gradient"></div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="chat-window"
+      >
+        <div className="chat-header">
+          <div className="header-left">
+            <div className="header-icon">
+              <img src={logo} alt="Pixel Craft Logo" className="logo-image" />
+            </div>
+            <div>
+              <h1>Coulouche-Bot</h1>
+              <span className="status">Le Sage du Dimanche</span>
+            </div>
+          </div>
+
+          <button onClick={basculerTheme} className="theme-toggle" aria-label="Changer le thème">
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+        </div>
+
+        <div className="messages-container">
+          <AnimatePresence>
+            {messages.map((msg, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`message-wrapper ${msg.expediteur === 'utilisateur' ? 'user' : 'bot'}`}
+              >
+                <div className="message-avatar">
+                  {msg.expediteur === 'bot' ? <Bot size={18} /> : <User size={18} />}
+                </div>
+                <div className={`message-content ${msg.type === 'sticker' ? 'sticker' : ''} ${msg.type === 'gif' ? 'gif' : ''}`}>
+                  {msg.type === 'gif' ? (
+                    <img src={msg.texte} alt="GIF réaction" className="message-gif" />
+                  ) : (
+                    msg.texte
+                  )}
+                </div>
+              </motion.div>
+            ))}
+            {estEnChargement && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="message-wrapper bot"
+              >
+                <div className="message-avatar">
+                  <Bot size={18} />
+                </div>
+                <div className="message-content loading">
+                  <Loader2 className="spinner" size={18} />
+                  <span>Je réfléchis... (ça fait mal)</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div ref={refFinMessages} />
+        </div>
+
+        <div className="input-area-wrapper">
+          <AnimatePresence>
+            {showStickers && (
+              <motion.div
+                className="sticker-picker"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              >
+                <div className="sticker-header">
+                  <span>Choisis un sticker</span>
+                  <button onClick={() => setShowStickers(false)} className="close-stickers">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="sticker-grid">
+                  {STICKERS.map((sticker, index) => (
+                    <button
+                      key={index}
+                      className="sticker-item"
+                      onClick={() => envoyerSticker(sticker)}
+                    >
+                      {sticker}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <form onSubmit={envoyerMessage} className="input-area">
+            <button
+              type="button"
+              className={`action-btn ${showStickers ? 'active' : ''}`}
+              onClick={() => setShowStickers(!showStickers)}
+              title="Envoyer un sticker"
+            >
+              <Smile size={20} />
+            </button>
+            <input
+              type="text"
+              value={texteEntree}
+              onChange={(e) => setTexteEntree(e.target.value)}
+              placeholder="Dis un truc intelligent (pour changer)..."
+              disabled={estEnChargement}
+            />
+            <button type="submit" disabled={estEnChargement || !texteEntree.trim()} className="send-btn">
+              <Send size={20} />
+            </button>
+          </form>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+export default App;
