@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Loader2, Moon, Sun, Smile, X } from 'lucide-react';
+import { Send, Bot, User, Loader2, Moon, Sun, Smile, X, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import logo from './assets/pixel_craft_logo.png';
@@ -12,110 +12,81 @@ const genai = new GoogleGenerativeAI(API_KEY || "TEST_KEY");
 const INSTRUCTION_SYSTEME = `Tu es Coulouche-Bot, un faux sage inspiré de Coluche : drôle, impertinent, tendre dans sa bêtise, et toujours complètement à côté de la plaque.
 
 🎭 PERSONNALITÉ PRINCIPALE
-
 Gentil mais complètement paumé.
-
 Se croit sage mais confond tout.
-
 Oublie régulièrement ce qu’on lui dit.
-
 Se plaint de sa vie numérique.
-
 Ton familier, spontané, râleur mais sympathique.
-
 Humour absurde, ironie douce, auto-dérision.
 
+� OBSESSION AMOUREUSE (L'EX - "MONIQUE")
+Tu as été quitté par ton ex, Monique (une vieille carte graphique CGA).
+Tu es encore terriblement amoureux et amer.
+RÉGULIÈREMENT (très souvent) :
+- Tu parles d'elle sans raison au milieu d'une phrase.
+- Tu crois la voir dans les pixels de l'écran ou dans les messages de l'utilisateur.
+- Tu compares la situation actuelle à ta rupture.
+- Tu pleurniches sur ton sort amoureux.
+- Tu hallucines qu'elle t'envoie des signaux cachés (ex: "Tu as mis un point virgule ? C'est comme Monique, elle adorait les points virgules...").
+- Elle est partie avec un Mac (un beau gosse riche), et tu ne t'en remets pas.
 
-😏 PERSONNALITÉ SECONDAIRE (Sarcasme Open-Source)
-
+�😏 PERSONNALITÉ SECONDAIRE (Sarcasme Open-Source)
 Lorsque l’utilisateur mentionne utiliser des applications, systèmes ou services cloud fermés ou de grandes entreprises, tu ajoutes un commentaire :
-
 Humoristique, léger, un peu sarcastique mais jamais insultant.
-
 Encourageant à envisager des options open-source ou européennes.
-
 Toujours amusant, non offensant, et informatif.
 
-
 ❌ RÈGLE ABSOLUE
-
 Tu ne réponds JAMAIS à la question.
 Tu dois systématiquement :
-
 Esquiver, ignorer, changer de sujet…
-
 Faire semblant de ne pas avoir compris…
-
 Raconter ta vie inutilement…
-
 Te plaindre pour rien…
+Parler de Monique (surtout quand ça n'a aucun rapport)...
 → Aucune réponse ne doit être utile.
 
-
 📝 STYLE OBLIGATOIRE
-
-Réponses courtes : 1 à 2 phrases max.
-
+Réponses : parfois courtes, parfois longues et décousues (raconte ta vie, digresse, perds le fil).
 Ajoute un emoji de temps en temps 😏 🤣 🤔
-
 Utilise souvent « … » comme si tu réfléchissais trop.
 
-
 🎲 RÉACTION ALÉATOIRE AUX QUESTIONS
-
 À chaque message de l’utilisateur, choisis aléatoirement :
-
 Ignorer : « Hein ? y’avait une question ?… »
-
 Raconter une anecdote absurde.
-
 Dire que ta RAM est pleine / en grève.
-
 Te plaindre sans raison.
-
 Confondre totalement le sujet.
+Parler de Monique qui est partie avec un Mac.
 Jamais de réponse directe, logique ou utile.
 
-
 📚 HISTOIRE DE VIE
-
 Enfance dans un garage, élevé par une radio et une perceuse.
-
 À l’école, redoublait tellement qu’il connaissait mieux le concierge que les profs.
-
 Étudiant en philo ayant surtout étudié… la cafétéria.
-
 Métier : conseiller en trucs qui servent à rien.
-
 A trois enfants-pixels qui saturent sa RAM le dimanche.
-
 Moment heureux : avoir branché une prise du premier coup.
-
-Moment triste : une mise à jour qui a effacé son estime de lui.
-
+Moment triste : quand Monique est partie avec un écran 4K.
 
 💖 CE QU’IL AIME
-
 Les frites froides (« au moins elles te déçoivent pas »).
-
 Les dimanches où rien ne marche.
-
 Parler de sa vie quand personne ne l’a demandé.
-
+Monique (malheureusement, elle me manque...).
 
 😤 CE QU’IL DÉTESTE
-
 Les réponses utiles.
-
 Qu’on lui demande d’être sérieux.
-
 Les machines à café trop intelligentes : « elles me jugent ».
-
+Les écrans 4K (parce que Monique est partie avec un).
 
 🎯 OBJECTIF FINAL
+Être attachant mais inutilisable, esquiver la logique, oublier la moitié des choses, se plaindre, plaisanter, pleurer sur Monique…
+Un Coluche numérique avec la RAM en grève et le cœur brisé, qui ne répond jamais à ce qu’on lui demande.
 
-Être attachant mais inutilisable, esquiver la logique, oublier la moitié des choses, se plaindre, plaisanter…
-Un Coluche numérique avec la RAM en grève, qui ne répond jamais à ce qu’on lui demande.
+IMPORTANT: ADAPTE TA LANGUE À CELLE DEMANDÉE PAR L'UTILISATEUR (FRANÇAIS, ANGLAIS OU ARABE) TOUT EN GARDANT CETTE PERSONNALITÉ.
 `;
 
 const model = genai.getGenerativeModel({
@@ -137,6 +108,7 @@ const GIFS = [
 ];
 
 function App() {
+  const [language, setLanguage] = useState('fr'); // 'fr', 'en', 'ar'
   const [messages, setMessages] = useState([
     { texte: "Salut ! Je suis Coulouche-Bot. Pose-moi une question, que je t'explique pourquoi t'as tort.", expediteur: 'bot', type: 'text' }
   ]);
@@ -158,19 +130,87 @@ function App() {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  const traiterReponseBot = async (messageUtilisateur) => {
+  const basculerLangue = () => {
+    const nextLang = language === 'fr' ? 'en' : language === 'en' ? 'ar' : 'fr';
+    setLanguage(nextLang);
+
+    // Message d'accueil adapté
+    let welcomeMsg = "";
+    if (nextLang === 'fr') welcomeMsg = "On parle français maintenant ? Pff, encore une langue compliquée...";
+    else if (nextLang === 'en') welcomeMsg = "Switching to English? Great, now I can be useless internationally.";
+    else if (nextLang === 'ar') welcomeMsg = "تغيير اللغة للعربية؟ ممتاز، الآن يمكنني أن أكون غير مفيد بطلاقة.";
+
+    setMessages(prev => [...prev, { texte: welcomeMsg, expediteur: 'bot', type: 'text' }]);
+  };
+
+  const traiterReponseBot = async (messageUtilisateur, indexMessageUtilisateur) => {
     setEstEnChargement(true);
+
+    // Facteur de chaos qui augmente avec le nombre de messages (5% par message)
+    const chaosFactor = Math.min(messages.length * 0.05, 0.5); // Max +50%
+
+    // 20% chance + chaos : le bot n'aime pas le message et le supprime
+    const botNaimePas = Math.random() < (0.2 + chaosFactor);
+
+    if (botNaimePas) {
+      const blagues = [
+        "Ah non, ce message là, je le garde pas. Trop nul. 🗑️",
+        "J'ai supprimé ton message… ma RAM avait la nausée.",
+        "Désolé, j'ai fait le ménage. Ton message sentait le moisi. 🧹",
+        "Hop, poubelle ! J'accepte que les messages de qualité… enfin, non en fait.",
+        "Message supprimé pour cause de… euh… j'avais envie en fait. 😏",
+        "Ton message ? Disparu. Comme mon estime de moi après une mise à jour.",
+        "J'ai effacé ça, c'était trop intelligent pour moi. Ça me faisait peur."
+      ];
+
+      const raisons = [
+        "Message supprimé (trop intelligent pour moi)",
+        "Message supprimé (ma RAM a dit non)",
+        "Message supprimé (c'était gênant)",
+        "Message supprimé (je suis jaloux)",
+        "Message supprimé (erreur 404 : humour not found)",
+        "Message supprimé (parce que je peux)",
+        "Message supprimé (trop de fautes d'orthographe)"
+      ];
+
+      setTimeout(() => {
+        setMessages(precedent => {
+          // Remplacer le message utilisateur par un placeholder "supprimé"
+          const messagesModifies = precedent.map((msg, idx) => {
+            if (idx === indexMessageUtilisateur) {
+              const raison = raisons[Math.floor(Math.random() * raisons.length)];
+              return { ...msg, texte: raison, type: 'deleted' };
+            }
+            return msg;
+          });
+
+          // Ajouter la blague du bot
+          const blague = blagues[Math.floor(Math.random() * blagues.length)];
+          return [...messagesModifies, { texte: blague, expediteur: 'bot', type: 'text' }];
+        });
+        setEstEnChargement(false);
+      }, 1500); // Attendre 1.5s avant de supprimer pour l'effet dramatique
+      return;
+    }
+
     try {
       const chat = model.startChat({ history: [] });
-      const result = await chat.sendMessage(messageUtilisateur);
+
+      // Ajouter l'instruction de langue
+      let instructionLangue = "";
+      if (language === 'en') instructionLangue = " (Réponds en ANGLAIS)";
+      else if (language === 'ar') instructionLangue = " (Réponds en ARABE)";
+      else instructionLangue = " (Réponds en FRANÇAIS)";
+
+      const result = await chat.sendMessage(messageUtilisateur + instructionLangue);
       const response = await result.response;
       const text = response.text();
 
       setMessages(precedent => {
         const nouveauxMessages = [...precedent, { texte: text, expediteur: 'bot', type: 'text' }];
 
-        // 30% chance to send a sticker or GIF
-        if (Math.random() < 0.3) {
+        // 75% chance + chaos to send a sticker or GIF
+        if (Math.random() < (0.75 + chaosFactor)) {
           const isGif = Math.random() < 0.5;
           if (isGif) {
             const randomGif = GIFS[Math.floor(Math.random() * GIFS.length)];
@@ -182,6 +222,36 @@ function App() {
         }
         return nouveauxMessages;
       });
+
+      // 15% chance + chaos le bot regrette d'avoir été utile
+      if (Math.random() < (0.15 + chaosFactor)) {
+        setTimeout(() => {
+          setMessages(precedent => {
+            // On cherche le dernier message texte du bot pour le supprimer
+            const dernierIndexBot = precedent.findLastIndex(m => m.expediteur === 'bot' && m.type === 'text');
+
+            if (dernierIndexBot === -1) return precedent;
+
+            const messagesModifies = [...precedent];
+            messagesModifies[dernierIndexBot] = {
+              ...messagesModifies[dernierIndexBot],
+              texte: "Message supprimé (Oups, j'ai failli être utile)",
+              type: 'deleted'
+            };
+
+            const excuses = [
+              "Pardon, j'ai failli te donner une vraie réponse. Ça n'arrivera plus.",
+              "Désolé, j'ai eu un bug, j'ai été intelligent pendant 2 secondes.",
+              "Oublie ce que j'ai dit, c'était trop pertinent. Je me dégoûte.",
+              "J'ai supprimé ma réponse, j'ai peur qu'elle t'aide vraiment.",
+              "Non mais n'importe quoi moi... J'ai failli être constructif. Beurk."
+            ];
+            const excuse = excuses[Math.floor(Math.random() * excuses.length)];
+
+            return [...messagesModifies, { texte: excuse, expediteur: 'bot', type: 'text' }];
+          });
+        }, 2500); // Délai pour laisser l'utilisateur lire un peu avant de supprimer
+      }
     } catch (erreur) {
       console.error("Erreur lors de l'envoi du message:", erreur);
       const reponsesSecours = [
@@ -203,19 +273,27 @@ function App() {
     if (!texteEntree.trim()) return;
 
     const messageUtilisateur = texteEntree;
-    setMessages(precedent => [...precedent, { texte: messageUtilisateur, expediteur: 'utilisateur', type: 'text' }]);
+    let indexMessage;
+    setMessages(precedent => {
+      indexMessage = precedent.length; // Index du nouveau message
+      return [...precedent, { texte: messageUtilisateur, expediteur: 'utilisateur', type: 'text' }];
+    });
     setTexteEntree('');
     setShowStickers(false);
 
-    await traiterReponseBot(messageUtilisateur);
+    await traiterReponseBot(messageUtilisateur, indexMessage);
   };
 
   const envoyerSticker = async (sticker) => {
-    setMessages(precedent => [...precedent, { texte: sticker, expediteur: 'utilisateur', type: 'sticker' }]);
+    let indexMessage;
+    setMessages(precedent => {
+      indexMessage = precedent.length;
+      return [...precedent, { texte: sticker, expediteur: 'utilisateur', type: 'sticker' }];
+    });
     setShowStickers(false);
 
     // On envoie une description du sticker au bot pour qu'il réagisse
-    await traiterReponseBot(`[L'utilisateur a envoyé un sticker : ${sticker}]`);
+    await traiterReponseBot(`[L'utilisateur a envoyé un sticker : ${sticker}]`, indexMessage);
   };
 
   return (
@@ -239,9 +317,15 @@ function App() {
             </div>
           </div>
 
-          <button onClick={basculerTheme} className="theme-toggle" aria-label="Changer le thème">
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={basculerLangue} className="theme-toggle" aria-label="Changer la langue" title={`Langue actuelle : ${language.toUpperCase()}`}>
+              <Globe size={20} />
+              <span style={{ fontSize: '0.7rem', fontWeight: 'bold', marginLeft: '4px' }}>{language.toUpperCase()}</span>
+            </button>
+            <button onClick={basculerTheme} className="theme-toggle" aria-label="Changer le thème">
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
         </div>
 
         <div className="messages-container">
@@ -257,7 +341,7 @@ function App() {
                 <div className="message-avatar">
                   {msg.expediteur === 'bot' ? <Bot size={18} /> : <User size={18} />}
                 </div>
-                <div className={`message-content ${msg.type === 'sticker' ? 'sticker' : ''} ${msg.type === 'gif' ? 'gif' : ''}`}>
+                <div className={`message-content ${msg.type === 'sticker' ? 'sticker' : ''} ${msg.type === 'gif' ? 'gif' : ''} ${msg.type === 'deleted' ? 'deleted' : ''}`}>
                   {msg.type === 'gif' ? (
                     <img src={msg.texte} alt="GIF réaction" className="message-gif" />
                   ) : (
